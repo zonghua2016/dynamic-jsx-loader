@@ -1,8 +1,11 @@
-import { useParams } from "react-router-dom";
 import RemoteComponent from "./RemoteComponent";
 
 export default function RemoteComponentViaBlob() {
-  const { id } = useParams();
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const id = urlParams.get("uri");
+  console.log(1111, id);
+
   return (
     <div>
       {/* <RemoteComponent url="http://localhost:3000/public/x2h.jsx" /> */}
