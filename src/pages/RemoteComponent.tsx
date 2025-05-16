@@ -4,7 +4,7 @@ import * as Lucide from "lucide-react";
 import * as FramerMotion from "framer-motion";
 import * as Babel from "@babel/standalone";
 
-const GLOBAL_SCOPE = {
+const GLOBAL_SCOPE: Record<string, unknown> = {
   React,
   ReactDOM,
   Lucide: { ...Lucide },
@@ -41,7 +41,7 @@ export default function RemoteComponentLoader({ url }: { url: string }) {
             self.indexOf(name) === idx
         );
 
-      const sandbox = { exports: {} };
+      const sandbox: Record<string, unknown> = { exports: {} };
 
       for (const name of usedVars) {
         if (name in GLOBAL_SCOPE) {
