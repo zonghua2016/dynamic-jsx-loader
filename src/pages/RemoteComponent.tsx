@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, type JSXElementConstructor } from "react";
 import * as ReactDOM from "react-dom";
 import * as Lucide from "lucide-react";
 import * as FramerMotion from "framer-motion";
@@ -12,8 +12,8 @@ const GLOBAL_SCOPE = {
   FramerMotion,
 };
 
-export default function RemoteComponentLoader({ url }) {
-  const [Component, setComponent] = useState(null);
+export default function RemoteComponentLoader({ url }: { url: string }) {
+  const [Component, setComponent] = useState<JSXElementConstructor<unknown>>();
 
   useEffect(() => {
     async function loadRemoteComponent() {
@@ -31,7 +31,7 @@ export default function RemoteComponentLoader({ url }) {
       }).code;
 
       // 🔍 提取变量名：找出所有疑似用到的符号（简单词法分析）
-      const usedVars = [...compiled.matchAll(/\b([A-Z][a-zA-Z0-9_]*)\b/g)]
+      const usedVars = [...compiled!.matchAll(/\b([A-Z][a-zA-Z0-9_]*)\b/g)]
         .map((m) => m[1])
         .filter((name, index, self) => self.indexOf(name) === index); // 去重
 
@@ -41,7 +41,7 @@ export default function RemoteComponentLoader({ url }) {
         ...usedVars.map((name) => {
           // 从全局模块中自动查找，如 React.useState、Lucide.MapPin
           for (const scope of Object.values(GLOBAL_SCOPE)) {
-            if (name in scope) return scope[name];
+            if (name in scope) return (scope as Record<string, unknown>)[name] as unknown;
           }
           return undefined;
         }),
@@ -49,9 +49,9 @@ export default function RemoteComponentLoader({ url }) {
       ];
 
       try {
-        const fn = new Function(...args, compiled);
+        const fn = new Function(...args, compiled!);
         fn(...values);
-        setComponent(() => values[values.length - 1].default);
+        setComponent(() => (values[values.length - 1] as { default: JSXElementConstructor<unknown> }).default);
       } catch (err) {
         console.error("组件执行失败:", err);
       }
