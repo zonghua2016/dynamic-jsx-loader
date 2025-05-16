@@ -4,7 +4,6 @@ export default function RemoteComponentViaBlob() {
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   const id = urlParams.get("uri");
-  console.log(1111, id);
 
   return (
     <div>

@@ -14,13 +14,15 @@ const GLOBAL_SCOPE: Record<string, unknown> = {
   ...FramerMotion,
 };
 
-
 export default function RemoteComponentLoader({ url }: { url: string }) {
   const [Component, setComponent] = useState<JSXElementConstructor<unknown>>();
 
   useEffect(() => {
     async function loadRemoteComponent() {
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        method: "GET",
+        referrerPolicy: "no-referrer",
+      });
       let rawCode = await res.text();
 
       // ✂️ 去除 import/export
@@ -37,8 +39,17 @@ export default function RemoteComponentLoader({ url }: { url: string }) {
         .map((m) => m[1])
         .filter(
           (name, idx, self) =>
-            !['true', 'false', 'return', 'if', 'else', 'function', 'const', 'let', 'var'].includes(name) &&
-            self.indexOf(name) === idx
+            ![
+              "true",
+              "false",
+              "return",
+              "if",
+              "else",
+              "function",
+              "const",
+              "let",
+              "var",
+            ].includes(name) && self.indexOf(name) === idx
         );
 
       const sandbox: Record<string, unknown> = { exports: {} };
