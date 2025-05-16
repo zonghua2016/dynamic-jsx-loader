@@ -4,13 +4,16 @@ import * as Lucide from "lucide-react";
 import * as FramerMotion from "framer-motion";
 import * as Babel from "@babel/standalone";
 
-// 💡 所有允许注入的模块
 const GLOBAL_SCOPE = {
   React,
   ReactDOM,
-  Lucide,
-  FramerMotion,
+  Lucide: { ...Lucide },
+  FramerMotion: { ...FramerMotion },
+  ...React,
+  ...Lucide,
+  ...FramerMotion,
 };
+
 
 export default function RemoteComponentLoader({ url }: { url: string }) {
   const [Component, setComponent] = useState<JSXElementConstructor<unknown>>();
@@ -30,28 +33,32 @@ export default function RemoteComponentLoader({ url }: { url: string }) {
         presets: ["react"],
       }).code;
 
-      // 🔍 提取变量名：找出所有疑似用到的符号（简单词法分析）
-      const usedVars = [...compiled!.matchAll(/\b([A-Z][a-zA-Z0-9_]*)\b/g)]
+      const usedVars = [...compiled!.matchAll(/\b([A-Za-z_][a-zA-Z0-9_]*)\b/g)]
         .map((m) => m[1])
-        .filter((name, index, self) => self.indexOf(name) === index); // 去重
+        .filter(
+          (name, idx, self) =>
+            !['true', 'false', 'return', 'if', 'else', 'function', 'const', 'let', 'var'].includes(name) &&
+            self.indexOf(name) === idx
+        );
 
-      // 💡 构造参数名、参数值
-      const args = [...usedVars, "exports"];
-      const values = [
-        ...usedVars.map((name) => {
-          // 从全局模块中自动查找，如 React.useState、Lucide.MapPin
-          for (const scope of Object.values(GLOBAL_SCOPE)) {
-            if (name in scope) return (scope as Record<string, unknown>)[name] as unknown;
-          }
-          return undefined;
-        }),
-        {},
-      ];
+      const sandbox = { exports: {} };
+
+      for (const name of usedVars) {
+        if (name in GLOBAL_SCOPE) {
+          sandbox[name] = GLOBAL_SCOPE[name];
+        }
+      }
 
       try {
-        const fn = new Function(...args, compiled!);
-        fn(...values);
-        setComponent(() => (values[values.length - 1] as { default: JSXElementConstructor<unknown> }).default);
+        const wrappedCode = `
+          with (sandbox) {
+            ${compiled}
+            return exports.default;
+          }
+        `;
+        const fn = new Function("sandbox", wrappedCode);
+        const Component = fn(sandbox);
+        setComponent(() => Component);
       } catch (err) {
         console.error("组件执行失败:", err);
       }

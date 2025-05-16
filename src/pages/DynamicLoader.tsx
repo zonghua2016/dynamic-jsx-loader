@@ -1,7 +1,10 @@
 // import React from "react";
+import { useParams } from "react-router-dom";
 import RemoteComponent from "./RemoteComponent";
 
 export default function RemoteComponentViaBlob() {
+  const { id } = useParams();
+  
   // const [Comp, setComp] = useState<React.FC | null>(null);
 
   // useEffect(() => {
@@ -27,42 +30,8 @@ export default function RemoteComponentViaBlob() {
 
   return (
     <div>
-      <RemoteComponent url="http://localhost:3000/public/x2h.jsx" />
-
-      {/* <LoadRemoteComponent
-        urls={["https://play.wot.360.cn/ai-components.js"]}
-        name="AIComponents.Button"
-      ></LoadRemoteComponent> */}
-
-      {/* <LoadRemoteComponent
-        urls={[
-          "https://cdnjs.cloudflare.com/ajax/libs/antd/5.16.2/antd.min.js",
-        ]}
-        name="antd.FloatButton"
-        options={{
-          props: {
-            type: "step-forward",
-            // loading: true,
-          },
-          externals: {
-            react: {
-              import: React,
-              export: "React",
-            },
-            "react-dom": {
-              import: ReactDOM,
-              export: "ReactDOM",
-            },
-            dayjs: {
-              import: dayjs,
-              export: "dayjs",
-            },
-          },
-        }}
-      >
-        按钮文字11
-      </LoadRemoteComponent> */}
-      {/* {Comp ? <Comp /> : "组件加载中..."} */}
+      {/* <RemoteComponent url="http://localhost:3000/public/x2h.jsx" /> */}
+      <RemoteComponent url={`https://play.wot.360.cn/${id}.jsx`} />
     </div>
   );
 }
